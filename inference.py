@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
 import sys
-sys.path.append('/home/gfx/Projects/remote_sensing_image_classification')
+sys.path.append('/home/gfx/Projects/Tinymind')
 import os, argparse, time
 
 import numpy as np
@@ -38,7 +38,7 @@ def inference():
     # model
     # load checkpoint
     model = torch.load(os.path.join('./checkpoints', config.checkpoint))
-    print model
+    # print model
     # model = torch.nn.DataParallel(model)
     model.cuda()
     

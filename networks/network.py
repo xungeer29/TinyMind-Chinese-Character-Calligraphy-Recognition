@@ -35,9 +35,14 @@ class ResNet18(nn.Module):
 
         self.avgpool = nn.AvgPool2d(kernel_size=3, stride=1, padding=0)
 
+        # conv replace FC
+        self.conv4 = nn.Conv2d(512, 100, 3, stride=2)
+
+        '''
         self.fc1 = nn.Linear(18432, 4608)
         self.dropout = nn.Dropout(0.5)
         self.fc2 = nn.Linear(4608, num_classes)
+        '''
 
     def forward(self, x):
         # x = whitening(x)
@@ -60,6 +65,14 @@ class ResNet18(nn.Module):
         x = self.backbone.layer3(x)
         x = self.backbone.layer4(x)
 
+        # conv replace fc
+        x = self.conv4(x)
+        x = self.avgpool(x)
+        x = x.view(x.size(0), -1)
+        # print x.size()
+
+        """
+        # FC
         x = self.avgpool(x)
         
         x = x.view(x.size(0), -1)
@@ -69,6 +82,7 @@ class ResNet18(nn.Module):
         x = l2_norm(x)
         x = self.dropout(x)
         x = self.fc2(x)
+        """
 
         return x
 
@@ -211,7 +225,7 @@ class ResNet152(nn.Module):
 if __name__ == '__main__':
     backbone = models.resnet18(pretrained=True)
     models = ResNet18(backbone, 100)
-    print models
+    # print models
     data = torch.randn(1, 1, 128, 128)
     x = models(data)
     #print(x)

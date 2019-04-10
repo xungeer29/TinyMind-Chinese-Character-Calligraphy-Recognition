@@ -3,9 +3,10 @@ import sys
 sys.path.append('/home/gfx/Projects/Tinymind')
 import os
 import cv2
+import random
 import pandas as pd
 import numpy as np
-from PIL import Image, ImageFilter
+from PIL import Image, ImageFilter, ImageOps
 
 import torch
 from torch.utils.data.dataset import Dataset
@@ -13,6 +14,8 @@ from torch.utils.data import DataLoader
 from torchvision import transforms
 
 from config import config
+
+
 
 def read_txt(path):
     ims, labels = [], []
@@ -37,6 +40,8 @@ class TMDataset(Dataset):
         im = Image.open(im_path).convert('L')
         #im = im.resize((self.width, self.height))
         if self.transform is not None:
+            if random.random() < 0.5:
+                im = ImageOps.invert(im)
             im = self.transform(im)
 
         return im, label

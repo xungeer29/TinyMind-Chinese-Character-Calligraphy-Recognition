@@ -92,6 +92,7 @@ def train():
 
     # load checkpoint
     if config.resume:
+        print 'resume checkpoint...'
         model = torch.load(os.path.join('./checkpoints', config.checkpoint))
 
     if not os.path.exists('./figs'):
@@ -102,7 +103,8 @@ def train():
     train_loss_sum = 0
     train_top1_sum = 0
     train_top5_sum = 0
-    max_val_acc = 0
+    max_val_top1_acc = 0
+    max_val_top5_acc = 0
     train_draw_acc = []
     val_draw_acc = []
     for epoch in range(config.num_epochs):
@@ -162,15 +164,22 @@ def train():
             print('Epoch [%d/%d], Val_Loss: %.4f, Val_top1: %.4f, Val_top5: %.4f'
                    %(epoch+1, config.num_epochs, val_loss, val_top1, val_top5))
             print('epoch time: {}s'.format(epoch_time*60))
-            if val_top1[0].data > max_val_acc:
-                max_val_acc = val_top1[0].data
-                print('Taking snapshot...')
+            if val_top1[0].data > max_val_top1_acc:
+                max_val_top1_acc = val_top1[0].data
+                print('Taking top1 snapshot...')
                 if not os.path.exists('./checkpoints'):
                     os.makedirs('./checkpoints')
-                torch.save(model, '{}/{}.pth'.format('checkpoints', config.model))
+                torch.save(model, '{}/{}_top1.pth'.format('checkpoints', config.model))
 
+            if val_top5[0].data > max_val_top5_acc:
+                max_val_top5_acc = val_top5[0].data
+                print('Taking top5 snapshot...')
+                if not os.path.exists('./checkpoints'):
+                    os.makedirs('./checkpoints')
+                torch.save(model, '{}/{}_top5.pth'.format('checkpoints', config.model))
             log.write('Epoch [%d/%d], Val_Loss: %.4f, Val_top1: %.4f, Val_top5: %.4f\n'
                        %(epoch+1, config.num_epochs, val_loss, val_top1, val_top5))
+
         draw_curve(train_draw_acc, val_draw_acc)
     log.write('-'*30+'\n')
     log.close()
