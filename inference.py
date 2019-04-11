@@ -47,27 +47,53 @@ def inference():
                                     transforms.ToTensor(),
                                     transforms.Normalize(mean=[0.485, 0.456, 0.406], 
                                                          std=[0.229, 0.224, 0.225])])
-    dst_test = TMTestDataset('./data/test2.txt', width=config.width, 
-                          height=config.height, transform=transform)
-    dataloader_valid = DataLoader(dst_test, shuffle=False, batch_size=config.batch_size/2, num_workers=config.num_workers)
-
     # label2name
     label2name = read_label('./data/label_list.txt')
+    
+    # TTA raw invert CenterCrop
+    augments = [0, 1, 2]
+    tta0, tta1, tta2 = {}, {}, {}
+    for idx in range(len(augments)):
+        print('TTA {}'.format(idx))
+        dst_test = TMTestDataset('./data/test2.txt', width=config.width, height=config.height, 
+                                 transform=transform, augment=augments[idx])
+        dataloader_valid = DataLoader(dst_test, shuffle=False, batch_size=config.batch_size/2, 
+                                      num_workers=config.num_workers)
 
-    sum = 0
-    model.eval()
-    results = []
-    for ims, im_names in tqdm(dataloader_valid):
-        input = Variable(ims).cuda()
-        output = model(input)
+        sum = 0
+        model.eval()
+        results = []
+        probs_all = []
+        for ims, im_names in tqdm(dataloader_valid):
+            input = Variable(ims).cuda()
+            output = model(input)
 
-        _, preds = output.topk(5, 1, True, True)
-        preds = preds.cpu().detach().numpy()
-        for pred, im_name in zip(preds, im_names):
-            top5_name = [label2name[p] for p in pred]
-            results.append({'filename':im_name, 'label':''.join(top5_name)})
-    df = pd.DataFrame(results, columns=['filename', 'label'])
-    df.to_csv('./data/result.csv', index=False)
+            """
+            _, preds = output.topk(5, 1, True, True)
+            preds = preds.cpu().detach().numpy()
+            for pred, im_name in zip(preds, im_names):
+                top5_name = [label2name[p] for p in pred]
+                results.append({'filename':im_name, 'label':''.join(top5_name)})
+        df = pd.DataFrame(results, columns=['filename', 'label'])
+        df.to_csv('./data/result_{}.csv'.format(idx), index=False)
+            """
+
+            probs = F.softmax(output)
+            probs = probs.cpu().detach().numpy()
+            for prob, im_name in zip(probs, im_names):
+                if idx == 0:
+                    tta0[im_name] = prob
+                elif idx == 1:
+                    tta1[im_name] = prob
+                elif idx == 2:
+                    tta2[im_name] = prob
+                else:
+                    print('Error: No  other TTA method!!!')
+                    break
+    # endemble TTA
+    for key in tta0.keys():
+        prob = (tta0[key] + tta1[key] + tta2[key]) / 3.
+    .........
 
 if __name__ == '__main__':
     inference()

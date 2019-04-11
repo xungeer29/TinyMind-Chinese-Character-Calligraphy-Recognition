@@ -86,9 +86,9 @@ def train():
     log = open('./log/log.txt', 'a')
 
     log.write('-'*30+'\n')
-    log.write('model:{}\nnum_classes:{}\nnum_epoch:{}\nlearning_rate:{}\nim_width:{}\nim_height:{}\niter_smooth:{}\n'.format(
+    log.write('model:{}\nnum_classes:{}\nnum_epoch:{}\nlearning_rate:{}\nim_width:{}\nim_height:{}\niter_smooth:{}\nOHEM:{}\nOHEM_ratio:{}\n'.format(
                config.model, config.num_classes, config.num_epochs, config.lr, 
-               config.width, config.height, config.iter_smooth))
+               config.width, config.height, config.iter_smooth, config.OHEM, config.OHEM_ratio))
 
     # load checkpoint
     if config.resume:
@@ -127,7 +127,18 @@ def train():
 
             output = model(input)
             
-            loss = criterion(output, target)
+            # OHEM: online hard example mining
+            if not config.OHEM:
+                loss = criterion(output, target)
+            elif config.OHEM:
+                if epoch < 50:
+                    loss = criterion(output, target)
+                else:
+                    loss = F.cross_entropy(output, target, reduce=False)
+                    OHEM, _ = loss.topk(int(config.num_classes*config.OHEM_ratio), dim=0, 
+                                        largest=True, sorted=True)
+                    loss = OHEM.mean()
+
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()

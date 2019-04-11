@@ -15,8 +15,6 @@ from torchvision import transforms
 
 from config import config
 
-
-
 def read_txt(path):
     ims, labels = [], []
     with open(path, 'r') as f:
@@ -50,12 +48,13 @@ class TMDataset(Dataset):
         return len(self.ims)
 
 class TMTestDataset(Dataset):
-    def __init__(self, txt_path, width=256, height=256, transform=None):
+    def __init__(self, txt_path, width=256, height=256, transform=None, augment=None):
         test_data = open(txt_path, 'r')
         self.ims = [line.strip() for line in test_data.readlines()]
         self.width = width
         self.height = height
         self.transform = transform
+        self.augment = augment
 
     def __getitem__(self, index):
         im_path = self.ims[index]
@@ -63,6 +62,16 @@ class TMTestDataset(Dataset):
         im_path = os.path.join(config.data_root, im_path)
         im = Image.open(im_path).convert('L')
         #im = im.resize((self.width, self.height))
+        if self.augment == 0:
+            im = im
+        # invert color
+        if self.augment == 1:
+            im = ImageOps.invert(im)
+        # center crop
+        if self.augment == 2:
+            w, h = im.size
+            im = im.crop((10, 10, w-10, h-10))
+
         if self.transform is not None:
             im = self.transform(im)
 

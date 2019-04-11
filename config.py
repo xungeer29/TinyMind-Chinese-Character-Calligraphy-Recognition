@@ -7,14 +7,19 @@ class DefaultConfigs(object):
     seed = 1000 # 固定随机种子
     num_workers = 12 # DataLoader 中的多线程数量
     num_classes = 100 # 分类类别数
-    num_epochs = 200
+    num_epochs = 150
     batch_size = 128 # 128
     lr = 0.01 # 初始lr
     width = 128 # 输入图像的宽
     height = 128 # 输入图像的高
     iter_smooth = 10 # 打印&记录log的频率
 
+    # OHEM
+    OHEM = True
+    OHEM_ratio = 0.5
+
+    # resume checkpoint
     resume = False #
-    checkpoint = 'ResNet18.pth' # 训练完成的模型名
+    checkpoint = 'ResNet18_top5.pth' # 训练完成的模型名
 
 config = DefaultConfigs()
