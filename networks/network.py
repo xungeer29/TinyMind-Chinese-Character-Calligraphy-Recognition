@@ -36,7 +36,7 @@ class ResNet18(nn.Module):
         self.avgpool = nn.AvgPool2d(kernel_size=3, stride=1, padding=0)
 
         # conv replace FC
-        self.conv4 = nn.Conv2d(512, 100, 3, stride=2)
+        self.conv4 = nn.Conv2d(512, num_classes, 3, stride=2)
 
         '''
         self.fc1 = nn.Linear(18432, 4608)
@@ -193,14 +193,38 @@ class ResNet152(nn.Module):
         super(ResNet152, self).__init__()
         self.backbone = model
 
+        self.conv1 = nn.Conv2d(1, 16, 3) # 1 channel -> 3 channel
+        self.bn1 = nn.BatchNorm2d(16)
+        self.relu = nn.ReLU()
+        
+        self.conv2 = nn.Conv2d(16, 32, 3)
+        self.bn2 = nn.BatchNorm2d(32)
+
+        self.conv3 = nn.Conv2d(32, 64, 3)
+
+        self.avgpool = nn.AvgPool2d(kernel_size=1, stride=1, padding=0)
+
+        # conv replace FC
+        self.conv4 = nn.Conv2d(2048, num_classes, 3, stride=2)
+        '''
         self.fc1 = nn.Linear(8192, 2048)
         self.dropout = nn.Dropout(0.5)
         self.fc2 = nn.Linear(2048, num_classes)
+        '''
 
 
     def forward(self, x):
         #x = whitening(x)
-        x = self.backbone.conv1(x)
+        x = self.conv1(x)
+        x = self.bn1(x)
+        x = self.relu(x)
+
+        x = self.conv2(x)
+        x = self.bn2(x)
+        x = self.relu(x)
+
+        x = self.conv3(x)
+
         x = self.backbone.bn1(x)
         x = self.backbone.relu(x)
         x = self.backbone.maxpool(x)
@@ -212,6 +236,13 @@ class ResNet152(nn.Module):
 
         x = self.backbone.avgpool(x)
         
+        # conv replace fc
+        x = self.conv4(x)
+        x = self.avgpool(x)
+        x = x.view(x.size(0), -1)
+        # print x.size()
+
+        '''
         x = x.view(x.size(0), -1)
         x = l2_norm(x)
         x = self.dropout(x)
@@ -219,12 +250,13 @@ class ResNet152(nn.Module):
         x = l2_norm(x)
         x = self.dropout(x)
         x = self.fc2(x)
+        '''
 
         return x
 
 if __name__ == '__main__':
-    backbone = models.resnet18(pretrained=True)
-    models = ResNet18(backbone, 100)
+    backbone = models.resnet152(pretrained=True)
+    models = ResNet152(backbone, 100)
     # print models
     data = torch.randn(1, 1, 128, 128)
     x = models(data)
