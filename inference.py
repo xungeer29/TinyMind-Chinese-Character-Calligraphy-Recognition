@@ -68,16 +68,13 @@ def inference():
             input = Variable(ims).cuda()
             output = model(input)
 
-            """
             _, preds = output.topk(5, 1, True, True)
             preds = preds.cpu().detach().numpy()
             for pred, im_name in zip(preds, im_names):
                 top5_name = [label2name[p] for p in pred]
                 results.append({'filename':im_name, 'label':''.join(top5_name)})
-        df = pd.DataFrame(results, columns=['filename', 'label'])
-        df.to_csv('./data/result_{}.csv'.format(idx), index=False)
-            """
 
+            # TTA
             probs = F.softmax(output)
             probs = probs.cpu().detach().numpy()
             for prob, im_name in zip(probs, im_names):
@@ -90,10 +87,20 @@ def inference():
                 else:
                     print('Error: No  other TTA method!!!')
                     break
+        # save no TTA
+        df = pd.DataFrame(results, columns=['filename', 'label'])
+        df.to_csv('./data/result_no_TTA.csv', index=False)
     # endemble TTA
+    #print tta0
+    tta_results = []
     for key in tta0.keys():
         prob = (tta0[key] + tta1[key] + tta2[key]) / 3.
-    .........
+        top5_idx = prob.argsort()[-5:][::-1]
+        top5_name = [label2name[p] for p in top5_idx]
+        tta_results.append({'filename':key, 'label':''.join(top5_name)})
+    # save TTA result
+    tta_df = pd.DataFrame(tta_results, columns=['filename', 'label'])
+    tta_df.to_csv('./data/result_3TTA.csv', index=False)
 
 if __name__ == '__main__':
     inference()
