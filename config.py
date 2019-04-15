@@ -16,7 +16,7 @@ class DefaultConfigs(object):
 
     # OHEM
     OHEM = False
-    OHEM_ratio = 0.5
+    OHEM_ratio = 0.1
 
     # resume checkpoint
     resume = False #
