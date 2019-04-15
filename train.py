@@ -23,6 +23,7 @@ from networks.lr_schedule import *
 from metrics.metric import *
 from utils.plot import *
 from config import config
+from utils.label_smooth import *
 
 
 def train():
@@ -59,6 +60,9 @@ def train():
     # loss
     criterion = nn.CrossEntropyLoss().cuda()
 
+    # label smoothing
+    label_smoothing = LabelSmoothing(smoothing=0.05)
+
     # train data
     transform = transforms.Compose([transforms.Scale(200),
                                     transforms.RandomSizedCrop(180),
@@ -69,7 +73,8 @@ def train():
                                                          std=[0.229, 0.224, 0.225])])
     dst_train = TMDataset('./data/train.txt', width=config.width, 
                           height=config.height, transform=transform)
-    dataloader_train = DataLoader(dst_train, shuffle=True, batch_size=config.batch_size, num_workers=config.num_workers)
+    dataloader_train = DataLoader(dst_train, shuffle=True, batch_size=config.batch_size, 
+                                  num_workers=config.num_workers)
 
     # validation data
     transform = transforms.Compose([transforms.Resize((config.width, config.height)),
@@ -126,6 +131,9 @@ def train():
             target = Variable(label).cuda().long()
 
             output = model(input)
+
+            if config.smooth_label:
+                target = label_smoothing(output, target)
             
             # OHEM: online hard example mining
             if not config.OHEM:

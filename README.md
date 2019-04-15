@@ -92,7 +92,6 @@ python inference.py
 ## TODO
 * soft label
 * data distulation
-* TTA
 * OHEM
 
 
@@ -103,5 +102,6 @@ python inference.py
 * ResNet18, 去掉全连接层，使用卷积层+global_average_pooling代替，acc@top5=96.21, 但是计算量反而增大
 * ResNet18, 增加图像反色的数据扩充, acc@top5=96.42
 * 3TTA acc@top5=96.92
-* OHEM acc@top5=
+* OHEM acc@top5=96.18 反而下降了, 没有调好？写错了？
 * ResNet152 acc@top5=
+* data augmentation 增加图像模糊 acc@top5=

@@ -202,10 +202,12 @@ class ResNet152(nn.Module):
 
         self.conv3 = nn.Conv2d(32, 64, 3)
 
-        self.avgpool = nn.AvgPool2d(kernel_size=1, stride=1, padding=0)
 
         # conv replace FC
-        self.conv4 = nn.Conv2d(2048, num_classes, 3, stride=2)
+        self.conv4 = nn.Conv2d(2048, 1024, 3, stride=1)
+        self.bn4 = nn.BatchNorm2d(1024)
+        self.conv5 = nn.Conv2d(1024, num_classes, 3, stride=2)
+        self.avgpool = nn.AvgPool2d(kernel_size=2, stride=1, padding=0)
         '''
         self.fc1 = nn.Linear(8192, 2048)
         self.dropout = nn.Dropout(0.5)
@@ -234,11 +236,16 @@ class ResNet152(nn.Module):
         x = self.backbone.layer3(x)
         x = self.backbone.layer4(x)
 
-        x = self.backbone.avgpool(x)
+        # x = self.backbone.avgpool(x)
         
         # conv replace fc
         x = self.conv4(x)
+        x = self.bn4(x)
+        x = self.relu(x)
+        x = self.conv5(x)
+        #print x.size()
         x = self.avgpool(x)
+        #print x.size()
         x = x.view(x.size(0), -1)
         # print x.size()
 

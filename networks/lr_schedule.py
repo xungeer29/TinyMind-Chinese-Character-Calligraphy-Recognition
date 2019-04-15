@@ -13,6 +13,8 @@ def step_lr(ep):
         lr = 0.0005
     elif ep < 100:
         lr = 0.0001
-    else:
+    elif ep < 200:
         lr = 0.00005
+    else:
+        ep = 0.00001
     return lr

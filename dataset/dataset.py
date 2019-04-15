@@ -14,6 +14,7 @@ from torch.utils.data import DataLoader
 from torchvision import transforms
 
 from config import config
+from augmentation import MyGaussianBlur
 
 def read_txt(path):
     ims, labels = [], []
@@ -40,6 +41,8 @@ class TMDataset(Dataset):
         if self.transform is not None:
             if random.random() < 0.5:
                 im = ImageOps.invert(im)
+            if random.random() < 0.5:
+                im = im.filter(MyGaussianBlur(radius=5))
             im = self.transform(im)
 
         return im, label
@@ -62,13 +65,13 @@ class TMTestDataset(Dataset):
         im_path = os.path.join(config.data_root, im_path)
         im = Image.open(im_path).convert('L')
         #im = im.resize((self.width, self.height))
-        if self.augment == 0:
+        if self.augment == 2:
             im = im
         # invert color
         if self.augment == 1:
             im = ImageOps.invert(im)
         # center crop
-        if self.augment == 2:
+        if self.augment == 0:
             w, h = im.size
             im = im.crop((10, 10, w-10, h-10))
 
