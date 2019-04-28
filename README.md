@@ -90,7 +90,7 @@ python inference.py
 ```
 
 ## TODO
-* soft label
+* soft label 还是有问题，使用 label smoothing 和相对熵nn.KLDivLoss后的损失为负，并且绝对值快速增大
 * data distulation
 * OHEM
 
@@ -103,5 +103,5 @@ python inference.py
 * ResNet18, 增加图像反色的数据扩充, acc@top5=96.42
 * 3TTA acc@top5=96.92
 * OHEM acc@top5=96.18 反而下降了, 没有调好？写错了？
-* ResNet152 acc@top5=
+* ResNet152 acc@top5=97.44
 * data augmentation 增加图像模糊 acc@top5=
